@@ -3,10 +3,10 @@
 @tailwind utilities;
 
 :root {
-  --vapor-bg: #09090b;
-  --neon-purple: #a855f7;
+  --vapor-bg: #070709;
+  --neon-purple: #c084fc;
   --neon-green: #34d399;
-  --neon-ice: #67e8f9;
+  --neon-ice: #38bdf8;
   color-scheme: dark;
 }
 
@@ -17,52 +17,88 @@ html {
 
 body {
   background: var(--vapor-bg);
-  color: #f4f4f5;
+  color: #f8fafc;
   font-family: 'Vazirmatn', system-ui, -apple-system, 'Segoe UI', Tahoma, sans-serif;
   overflow-x: hidden;
   overscroll-behavior-y: none;
+  letter-spacing: -0.01em;
 }
 
-/* ---------- Glassmorphism ---------- */
+/* ---------- Glassmorphism & High-Contrast Acrylic Surfaces ---------- */
 @layer components {
+  /* لایه شیشه‌ای استاندارد با کدر بودن بهینه و حاشیه روشن بالایی برای ایجاد عمق */
   .glass {
-    @apply border border-white/10 bg-white/[0.06] backdrop-blur-xl;
+    @apply border border-white/[0.12] bg-[#0e0e14]/85 backdrop-blur-2xl shadow-card transition-all duration-300;
   }
+  
+  /* لایه شیشه‌ای متمرکز و سنگین برای هدرها، شیت‌ها و مودال‌ها */
   .glass-strong {
-    @apply border border-white/10 bg-vapor-900/80 backdrop-blur-2xl;
+    @apply border border-white/[0.15] bg-[#09090e]/95 backdrop-blur-3xl shadow-glass;
   }
+
+  /* کارت‌های پرمیوم با افکت های‌لایت لبه */
+  .glass-card {
+    @apply relative border border-white/[0.12] bg-gradient-to-b from-white/[0.08] to-[#0e0e14]/90 backdrop-blur-2xl shadow-card transition-all duration-300;
+  }
+
+  /* متن‌های نئونی با کنتراست فوق‌العاده بالا */
   .neon-text-purple {
-    background: linear-gradient(135deg, #e9d5ff, #a855f7 55%, #67e8f9);
+    background: linear-gradient(135deg, #ffffff 10%, #c084fc 60%, #38bdf8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
+
   .neon-text-green {
-    background: linear-gradient(135deg, #d1fae5, #34d399 55%, #67e8f9);
+    background: linear-gradient(135deg, #ffffff 10%, #34d399 60%, #38bdf8 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
+
+  .neon-text-ice {
+    background: linear-gradient(135deg, #ffffff 10%, #38bdf8 60%, #a855f7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .neon-text-gold {
+    background: linear-gradient(135deg, #ffffff 10%, #fbbf24 60%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* دکمه اصلی نئونی با بازخورد لمسی عالی */
   .btn-neon {
-    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-l from-neon-purple via-neon-violet to-neon-blue px-6 py-3.5 text-sm font-extrabold text-white transition-transform duration-200 active:scale-95;
-    box-shadow: 0 0 24px rgba(168, 85, 247, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    @apply relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-2xl bg-gradient-to-l from-neon-violet via-neon-purple to-neon-ice px-6 py-3.5 text-sm font-black text-white transition-all duration-200 active:scale-95 hover:shadow-neon-purple;
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
   .btn-neon::after {
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+    background: linear-gradient(105deg, transparent 35%, rgba(255, 255, 255, 0.3) 50%, transparent 65%);
     background-size: 200% 100%;
     animation: shimmer 2.8s linear infinite;
     pointer-events: none;
   }
+
+  /* دکمه ثانویه شیشه‌ای */
+  .btn-secondary {
+    @apply relative inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/[0.08] px-5 py-3.5 text-sm font-extrabold text-zinc-100 backdrop-blur-md transition-all duration-200 hover:border-white/30 hover:bg-white/[0.12] active:scale-95;
+  }
+
+  /* چیپ‌ها و تگ‌های تعاملی */
   .chip {
-    @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.06] px-4 py-2 text-xs font-bold text-zinc-300 backdrop-blur-md transition-all duration-200 active:scale-95;
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/[0.12] bg-[#14141e]/90 px-4 py-2 text-xs font-extrabold text-zinc-200 backdrop-blur-md transition-all duration-200 hover:border-white/30 hover:text-white active:scale-95;
   }
   .chip-active {
-    @apply border-neon-purple/60 bg-neon-purple/20 text-white;
-    box-shadow: 0 0 16px rgba(168, 85, 247, 0.35);
+    @apply border-neon-purple/80 bg-neon-purple/25 text-white font-black;
+    box-shadow: 0 0 18px rgba(192, 132, 252, 0.4);
   }
+
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
@@ -75,7 +111,7 @@ body {
   }
 }
 
-/* ---------- Bottom-sheet + fade transitions ---------- */
+/* ---------- Transitions & Animation States ---------- */
 .sheet-enter-active,
 .sheet-leave-active {
   transition: transform 0.38s cubic-bezier(0.32, 0.72, 0.28, 1);
@@ -84,14 +120,16 @@ body {
 .sheet-leave-to {
   transform: translateY(100%);
 }
+
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity 0.28s ease;
+  transition: opacity 0.25s ease;
 }
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
 }
+
 .pop-enter-active,
 .pop-leave-active {
   transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -101,6 +139,7 @@ body {
   opacity: 0;
   transform: scale(0.85) translateY(10px);
 }
+
 .toast-enter-active,
 .toast-leave-active {
   transition: all 0.3s cubic-bezier(0.34, 1.4, 0.64, 1);
@@ -111,14 +150,14 @@ body {
   transform: translateY(16px) scale(0.92);
 }
 
-/* ---------- Typing dots ---------- */
+/* ---------- Typing dots in AI Assistant ---------- */
 .typing-dots span {
   display: inline-block;
-  width: 6px;
-  height: 6px;
-  margin-inline-end: 3px;
+  width: 7px;
+  height: 7px;
+  margin-inline-end: 4px;
   border-radius: 9999px;
-  background: #a855f7;
+  background: #c084fc;
   animation: typing-bounce 1.2s infinite;
 }
 .typing-dots span:nth-child(2) {
@@ -127,46 +166,50 @@ body {
 }
 .typing-dots span:nth-child(3) {
   animation-delay: 0.3s;
-  background: #67e8f9;
+  background: #38bdf8;
 }
 @keyframes typing-bounce {
   0%,
   60%,
   100% {
     transform: translateY(0);
-    opacity: 0.5;
+    opacity: 0.4;
   }
   30% {
-    transform: translateY(-5px);
+    transform: translateY(-6px);
     opacity: 1;
   }
 }
 
-/* ---------- Flavor bars ---------- */
+/* ---------- Flavor Bars ---------- */
 .flavor-bar {
-  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- Gallery ---------- */
+/* ---------- Gallery Slider Track ---------- */
 .gallery-track {
   transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* ---------- Custom scrollbar (desktop) ---------- */
+/* ---------- Desktop Custom Scrollbar ---------- */
 @media (min-width: 768px) {
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #101014;
+    background: #070709;
   }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, #a855f7, #38bdf8);
+    background: linear-gradient(180deg, #7c3aed, #0284c7);
     border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #9333ea, #0ea5e9);
   }
 }
 
 ::selection {
-  background: rgba(168, 85, 247, 0.5);
+  background: rgba(192, 132, 252, 0.45);
+  color: #ffffff;
 }

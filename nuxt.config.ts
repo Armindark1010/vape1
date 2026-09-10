@@ -22,7 +22,7 @@ export default defineNuxtConfig({
           content:
             'فروشگاه لوکس ویپ، سالت نیکوتین و پاد با دستیار هوشمند انتخاب طعم (AI Sommelier)، ارسال سریع و ضمانت اصالت کالا.',
         },
-        { name: 'theme-color', content: '#09090B' },
+        { name: 'theme-color', content: '#070709' },
       ],
       link: [
         { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },

@@ -1,19 +1,28 @@
 <template>
-  <div class="fixed inset-0 z-0 overflow-hidden bg-vapor-950" aria-hidden="true">
-    <canvas ref="canvasRef" class="block h-full w-full" />
-    <!-- وینیت + گرادیان برای خوانایی محتوا -->
+  <div class="fixed inset-0 z-0 overflow-hidden bg-[#070709] pointer-events-none select-none" aria-hidden="true">
+    <!-- بستر سه‌بعدی ذرات دود -->
+    <canvas ref="canvasRef" class="block h-full w-full opacity-60 transition-opacity duration-1000" />
+
+    <!-- لایه‌های وینیِت و فیلتر تیره برای تضمین خوانایی ۱۰۰٪ متون و کارت‌ها (WCAG AAA) -->
+    <!-- ۱. گرادیان شعاعی مرکز برای تاریک نگه داشتن پشت متون -->
     <div
-      class="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(9,9,11,0.8)_100%)]"
+      class="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(7,7,9,0.75)_0%,rgba(7,7,9,0.92)_70%,rgba(7,7,9,0.98)_100%)]"
+    />
+
+    <!-- ۲. گرادیان عمودی از بالا و پایین -->
+    <div
+      class="absolute inset-0 bg-gradient-to-b from-[#070709]/90 via-transparent to-[#070709]/95"
+    />
+
+    <!-- ۳. هاله‌های نوری آمبینت ملایم در گوشه‌ها (بدون تداخل با متن) -->
+    <div
+      class="absolute -top-32 -start-32 h-96 w-96 rounded-full bg-neon-purple/[0.12] blur-[120px]"
     />
     <div
-      class="pointer-events-none absolute inset-0 bg-gradient-to-b from-vapor-950/70 via-transparent to-vapor-950/95"
-    />
-    <!-- هاله‌های نئونی ثابت -->
-    <div
-      class="pointer-events-none absolute -top-24 -start-24 h-72 w-72 rounded-full bg-neon-purple/15 blur-[100px]"
+      class="absolute top-1/3 -end-32 h-96 w-96 rounded-full bg-neon-ice/[0.08] blur-[130px]"
     />
     <div
-      class="pointer-events-none absolute bottom-10 -end-24 h-80 w-80 rounded-full bg-neon-ice/10 blur-[110px]"
+      class="absolute -bottom-32 start-1/4 h-96 w-96 rounded-full bg-neon-green/[0.07] blur-[140px]"
     />
   </div>
 </template>
@@ -22,11 +31,11 @@
 import * as THREE from 'three'
 
 /**
- * پس‌زمینه دود سه‌بعدی تعاملی (Three.js)
- * - ذرات GPU با شیدر سفارشی (بدون تکسچر خارجی)
- * - تعامل لمسی/ماوس: دود از انگشت کنار می‌رود
- * - گاورنر خودکار FPS: کاهش/افزایش تعداد ذرات و پیکسل‌ریشو
- * - توقف هوشمند + احترام به prefers-reduced-motion
+ * پس‌زمینه دود سه‌بعدی بهینه‌شده و لوکس (Three.js)
+ * - کنترل دقیق آلفا و شیدر برای حفظ کنتراست حداکثری متون
+ * - پاسخگویی به ماوس و لمس با دافعه نرم
+ * - مدیریت خودکار نرخ فریم (FPS Governor)
+ * - احترام به prefers-reduced-motion
  */
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -41,25 +50,33 @@ const VERT = /* glsl */ `
   uniform float uPixelRatio;
   varying vec3 vColor;
   varying float vAlpha;
+
   void main() {
     vec3 p = position;
     float t = uTime * aSpeed + aOffset;
-    // بالا رفتن چرخه‌ای دود
-    p.y = mod(p.y + t * 0.16 + 2.0, 4.0) - 2.0;
-    // چرخش مارپیچ
-    p.x += sin(t * 0.55 + p.y * 2.1) * 0.28;
-    p.z += cos(t * 0.42 + p.y * 1.6) * 0.22;
-    // دافعه لمسی
-    vec2 d = p.xy - uTouch * vec2(2.4, 2.0);
+
+    // بالا رفتن نرم و متناوب دود
+    p.y = mod(p.y + t * 0.12 + 2.5, 5.0) - 2.5;
+
+    // موج و چرخش متقارن طبیعی
+    p.x += sin(t * 0.4 + p.y * 1.5) * 0.35;
+    p.z += cos(t * 0.3 + p.y * 1.2) * 0.25;
+
+    // دافعه نرم نسبت به موقعیت نشانگر
+    vec2 d = p.xy - uTouch * vec2(2.5, 2.0);
     float dist = length(d);
-    float push = smoothstep(1.0, 0.0, dist) * 0.4;
+    float push = smoothstep(1.2, 0.0, dist) * 0.45;
     p.xy += normalize(d + vec2(0.0001)) * push;
+
     vec4 mv = modelViewMatrix * vec4(p, 1.0);
     gl_Position = projectionMatrix * mv;
-    float size = aScale * (1.0 + push * 2.2);
-    gl_PointSize = size * uPixelRatio * (150.0 / -mv.z);
+
+    float size = aScale * (1.0 + push * 1.8);
+    gl_PointSize = size * uPixelRatio * (140.0 / -mv.z);
+
     vColor = aColor;
-    vAlpha = smoothstep(2.0, 0.35, abs(p.y)) * 0.5;
+    // شفافیت محو در لبه‌های بالا و پایین برای حرکت پیوسته و لطیف
+    vAlpha = smoothstep(2.5, 0.4, abs(p.y)) * 0.38;
   }
 `
 
@@ -67,18 +84,22 @@ const FRAG = /* glsl */ `
   precision mediump float;
   varying vec3 vColor;
   varying float vAlpha;
+
   void main() {
     vec2 uv = gl_PointCoord - 0.5;
     float d = length(uv);
-    float a = smoothstep(0.5, 0.04, d) * vAlpha;
-    a *= 0.72 + 0.28 * sin(uv.x * 22.0 + uv.y * 15.0);
-    if (a < 0.003) discard;
+    // لبه بسیار نرم بدون بریدگی دایره‌ای
+    float a = smoothstep(0.5, 0.02, d) * vAlpha;
+    // بافت ظریف مه‌گونه
+    a *= 0.8 + 0.2 * sin(uv.x * 18.0 + uv.y * 12.0);
+    if (a < 0.004) discard;
     gl_FragColor = vec4(vColor, a);
   }
 `
 
-const PALETTE = ['#a855f7', '#8b5cf6', '#34d399', '#67e8f9', '#f472b6', '#38bdf8']
-const MAX_PARTICLES = 1400
+// پالت رنگی دود لوکس و ملایم (ترکیب ویپ، منتول و نئون بنفش)
+const PALETTE = ['#9333ea', '#7c3aed', '#06b6d4', '#10b981', '#ec4899', '#3b82f6']
+const MAX_PARTICLES = 1000
 
 interface QualityLevel {
   count: number
@@ -94,8 +115,8 @@ onMounted(() => {
   const dpr = Math.min(window.devicePixelRatio || 1, 2)
 
   const QUALITY: QualityLevel[] = [
-    { count: 350, pr: 1 },
-    { count: 800, pr: Math.min(dpr, 1.5) },
+    { count: 300, pr: 1 },
+    { count: 650, pr: Math.min(dpr, 1.5) },
     { count: MAX_PARTICLES, pr: dpr },
   ]
   let qi = isMobile ? 1 : 2
@@ -112,7 +133,7 @@ onMounted(() => {
   const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 10)
   camera.position.z = 3.2
 
-  // ---------- ساخت ذرات ----------
+  // ساخت ذرات
   const positions = new Float32Array(MAX_PARTICLES * 3)
   const colors = new Float32Array(MAX_PARTICLES * 3)
   const scales = new Float32Array(MAX_PARTICLES)
@@ -121,15 +142,15 @@ onMounted(() => {
   const tmpColor = new THREE.Color()
 
   for (let i = 0; i < MAX_PARTICLES; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 4.8
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 4.0
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 2.0
+    positions[i * 3] = (Math.random() - 0.5) * 5.2
+    positions[i * 3 + 1] = (Math.random() - 0.5) * 5.0
+    positions[i * 3 + 2] = (Math.random() - 0.5) * 2.2
     tmpColor.set(PALETTE[(Math.random() * PALETTE.length) | 0])
     colors[i * 3] = tmpColor.r
     colors[i * 3 + 1] = tmpColor.g
     colors[i * 3 + 2] = tmpColor.b
-    scales[i] = 6 + Math.random() * 18
-    speeds[i] = 0.25 + Math.random() * 0.85
+    scales[i] = 8 + Math.random() * 20
+    speeds[i] = 0.2 + Math.random() * 0.6
     offsets[i] = Math.random() * 20
   }
 
@@ -175,7 +196,7 @@ onMounted(() => {
     renderer.setSize(w, h, false)
   }
 
-  // ---------- تعامل لمسی ----------
+  // تعامل نرم با اشاره‌گر
   const touchTarget = new THREE.Vector2(10, 10)
   let lastInteract = 0
   const setFromClient = (x: number, y: number) => {
@@ -187,6 +208,7 @@ onMounted(() => {
     const t = e.touches[0]
     if (t) setFromClient(t.clientX, t.clientY)
   }
+
   window.addEventListener('pointermove', onPointerMove, { passive: true })
   window.addEventListener('touchmove', onTouchMove, { passive: true })
   window.addEventListener('touchstart', onTouchMove, { passive: true })
@@ -194,24 +216,21 @@ onMounted(() => {
 
   applyQuality()
 
-  // حالت کاهش حرکت: فقط یک فریم ثابت
   if (prefersReduced) {
     uniforms.uTime.value = 4
     renderer.render(scene, camera)
     return
   }
 
-  // ---------- حلقه رندر + گاورنر FPS ----------
   const clock = new THREE.Clock()
   let raf = 0
   let frames = 0
   let acc = 0
-  let goodWindows = 0
   let running = true
 
   const onVisibility = () => {
     running = !document.hidden
-    if (running) clock.getDelta() // جلوگیری از پرش زمانی
+    if (running) clock.getDelta()
   }
   document.addEventListener('visibilitychange', onVisibility)
 
@@ -220,19 +239,12 @@ onMounted(() => {
     acc += dt
     if (frames >= 90) {
       const avgFps = frames / acc
-      if (avgFps < 45 && qi > 0) {
+      if (avgFps < 40 && qi > 0) {
         qi--
         applyQuality()
-        goodWindows = 0
       } else if (avgFps > 57 && qi < QUALITY.length - 1) {
-        goodWindows++
-        if (goodWindows >= 2) {
-          qi++
-          applyQuality()
-          goodWindows = 0
-        }
-      } else {
-        goodWindows = 0
+        qi++
+        applyQuality()
       }
       frames = 0
       acc = 0
@@ -246,11 +258,10 @@ onMounted(() => {
     const t = clock.elapsedTime
     uniforms.uTime.value = t
 
-    // برگشت نرم لمس به حالت شناور خودکار بعد از ۳ ثانیه بی‌حرکتی
-    if (performance.now() - lastInteract > 3000) {
-      touchTarget.set(Math.sin(t * 0.3) * 0.6, Math.cos(t * 0.22) * 0.5)
+    if (performance.now() - lastInteract > 2500) {
+      touchTarget.set(Math.sin(t * 0.25) * 0.5, Math.cos(t * 0.18) * 0.4)
     }
-    uniforms.uTouch.value.lerp(touchTarget, 0.06)
+    uniforms.uTouch.value.lerp(touchTarget, 0.05)
 
     govern(dt)
     renderer.render(scene, camera)
